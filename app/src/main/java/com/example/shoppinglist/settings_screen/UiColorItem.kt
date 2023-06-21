@@ -17,11 +17,12 @@ import com.example.shoppinglist.R
 //это цвета для изменения цвета надписей, еще не доделал
 @Composable
 fun UiColorItem(
-    item: ColorItem
+    item: ColorItem,
+    onEvent: (SettingsEvent) -> Unit
 ) {
     IconButton(
         onClick = {
-
+            onEvent(SettingsEvent.onItemSelected(item.color))
         },
         modifier = Modifier
             .padding(start = 10.dp)

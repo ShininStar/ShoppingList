@@ -1,10 +1,14 @@
 package com.example.shoppinglist.note_list_screen
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.shoppinglist.data.NoteItem
 import com.example.shoppinglist.data.NoteRepository
+import com.example.shoppinglist.datastore.DataStoreManager
 import com.example.shoppinglist.dialog.DialogController
 import com.example.shoppinglist.dialog.DialogEvent
 import com.example.shoppinglist.note_list_screen.NoteListEvent
@@ -12,6 +16,7 @@ import com.example.shoppinglist.shopping_list_screen.ShoppingListEvent
 import com.example.shoppinglist.utils.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,15 +24,22 @@ import javax.inject.Inject
 //view model по аналогии с ShoppingListViewModel
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    dataStoreManager: DataStoreManager
 ): ViewModel(), DialogController {
 
-    val noteList = repository.getAllItems()
-
+    val noteListFlow = repository.getAllItems()
     private var noteItem: NoteItem? = null
+
+    var noteList by mutableStateOf(listOf<NoteItem>())
+    var originNoteList = listOf<NoteItem>()
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    var titleColor = mutableStateOf("#487242")
+    var searchText by mutableStateOf("")
+        private set
 
     override var dialogTitle = mutableStateOf("Delete this note?")
         private set
@@ -38,8 +50,31 @@ class NoteListViewModel @Inject constructor(
     override var showEditableText = mutableStateOf(false)
         private set
 
+    init {
+        viewModelScope.launch {
+            dataStoreManager.getStringPreference(
+                DataStoreManager.TITLE_COLOR,
+                "#487242"
+            ).collect {color ->
+                titleColor.value = color
+            }
+        }
+        viewModelScope.launch {
+            noteListFlow.collect {list ->
+                noteList = list
+                originNoteList = list
+            }
+        }
+    }
+
     fun onEvent(event: NoteListEvent) {
         when(event) {
+            is NoteListEvent.OnTextSearchChange -> {
+                searchText = event.text
+                noteList = originNoteList.filter {note ->
+                    note.title.lowercase().startsWith(searchText.lowercase())
+                }
+            }
             is NoteListEvent.OnShowDeleteDialog -> {
                 openDialog.value = true
                 noteItem = event.item

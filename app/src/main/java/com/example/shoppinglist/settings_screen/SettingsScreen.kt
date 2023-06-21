@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
-//экран настроек для изменения цвета текста в карточках, еще не доделал, поэтому settings screen пропускаем :)
+//экран настроек для изменения цвета текста заголовка NoteItem
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
@@ -36,7 +36,9 @@ fun SettingsScreen(
                 .padding(top = 10.dp)
         ) {
             items(list) {item ->
-                UiColorItem(item = item)
+                UiColorItem(item = item) { event ->
+                    viewModel.onEvent(event)
+                }
             }
         }
     }

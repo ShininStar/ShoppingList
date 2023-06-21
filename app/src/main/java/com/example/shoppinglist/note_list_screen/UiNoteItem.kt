@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import com.example.shoppinglist.utils.Routes
 //карточка заметки
 @Composable
 fun UiNoteItem(
+    titleColor: String,
     item: NoteItem,
     onEvent: (NoteListEvent) -> Unit
 ) {
@@ -55,7 +57,8 @@ fun UiNoteItem(
                         .weight(1f),
                     text = item.title,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(android.graphics.Color.parseColor(titleColor))
                 )
                 Text(
                     modifier = Modifier.padding(
